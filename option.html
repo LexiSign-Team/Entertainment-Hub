@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Karaoke & DJ Options</title>
+
+<style>
+html, body {
+  margin:0;
+  padding:0;
+  height:100%;
+  font-family: Arial, sans-serif;
+  background: url("Images/background.jpg") no-repeat center center fixed;
+  background-size: cover;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+h1 {
+  margin-bottom: 30px;
+  text-shadow: 0 2px 5px rgba(0,0,0,0.7);
+  text-align: center;
+}
+
+.option-btn {
+  width: 320px;
+  padding: 18px;
+  margin: 8px 0;
+  font-size: 20px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  background: rgba(0,0,0,0.75);
+  color: white;
+  transition: background 0.2s;
+}
+
+.option-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
+</style>
+</head>
+
+<body>
+
+<h1>Karaoke & DJ Options</h1>
+
+<!-- 🎤 Karaoke Views -->
+<button class="option-btn"
+  onclick="location.href='singer-View/search.html'">
+  Karaoke Singer View
+</button>
+
+<button class="option-btn"
+  onclick="location.href='host.html'">
+  Karaoke Host View
+</button>
+
+<button class="option-btn"
+  onclick="location.href='tv.html'">
+  Karaoke TV View
+</button>
+
+<!-- 🎧 DJ Views -->
+<button class="option-btn"
+  onclick="location.href='dj_song_request.html'">
+  DJ Song Request View
+</button>
+
+<button class="option-btn"
+  onclick="location.href='dj_queue.html'">
+  DJ Queue View
+</button>
+
+<button class="option-btn"
+  onclick="location.href='dj_tv.html'">
+  DJ TV View
+</button>
+
+</body>
+</html>

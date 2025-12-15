@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DJ Song Request</title>
+
+<!-- Apple Music MusicKit -->
+<script src="https://js-cdn.music.apple.com/musickit/v1/musickit.js"></script>
+
+<style>
+html, body {
+  margin:0;
+  padding:0;
+  height:100%;
+  font-family: Arial, sans-serif;
+  background: url("Images/dj_background.jpg") no-repeat center center fixed;
+  background-size: cover;
+  color: white;
+}
+
+#app {
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.7);
+}
+
+input {
+  width: 100%;
+  padding: 14px;
+  font-size: 18px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 15px;
+}
+
+.song {
+  display: flex;
+  align-items: center;
+  background: rgba(0,0,0,0.75);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.song img {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  margin-right: 12px;
+}
+
+.song:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+button {
+  width: 100%;
+  padding: 16px;
+  font-size: 18px;
+  border-radius: 12px;
+  border: none;
+  background: #ff2d9a;
+  color: white;
+  cursor: pointer;
+  margin-top: 15px;
+}
+
+.hidden {
+  display: none;
+}
+</style>
+</head>
+
+<body>
+
+<div id="app">
+  <h1>🎧 DJ Song Request</h1>
+
+  <input id="searchInput" placeholder="Search Apple Music">
+
+  <div id="results"></div>
+
+  <button id="submitBtn" class="hidden" onclick="submitRequest()">
+    Request Song
+  </button>
+</div>
+
+<script>
+/* =========================
+   Apple Music CONFIG
+   ========================= */
+
+// 🔴 PLACEHOLDER — replace later
+const DEVELOPER_TOKEN = "YOUR_APPLE_MUSIC_DEVELOPER_TOKEN";
+const STOREFRONT = "us";
+
+let selectedSong = null;
+
+/* =========================
+   MusicKit Init
+   ========================= */
+document.addEventListener("musickitloaded", async () => {
+  MusicKit.configure({
+    developerToken: DEVELOPER_TOKEN,
+    app: {
+      name: "KaraokeDJ",
+      build: "1.0.0"
+    }
+  });
+});
+
+/* =========================
+   Search Apple Music
+   ========================= */
+searchInput.addEventListener("input", async () => {
+  const term = searchInput.value.trim();
+  results.innerHTML = "";
+  submitBtn.classList.add("hidden");
+
+  if (term.length < 3) return;
+
+  try {
+    const music = MusicKit.getInstance();
+    const res = await music.api.search(term, {
+      limit: 10,
+      types: ["songs"]
+    });
+
+    const songs = res.songs.data;
+
+    songs.forEach(song => {
+      const div = document.createElement("div");
+      div.className = "song";
+      div.innerHTML = `
+        <img src="${song.attributes.artwork.url.replace('{w}',100).replace('{h}',100)}">
+        <div>
+          <strong>${song.attributes.name}</strong><br>
+          ${song.attributes.artistName}
+        </div>
+      `;
+      div.onclick = () => selectSong(song);
+      results.appendChild(div);
+    });
+
+  } catch (e) {
+    console.error(e);
+  }
+});
+
+/* =========================
+   Select Song
+   ========================= */
+function selectSong(song) {
+  selectedSong = song;
+  submitBtn.classList.remove("hidden");
+}
+
+/* =========================
+   Submit Request
+   ========================= */
+function submitRequest() {
+  if (!selectedSong) return;
+
+  alert(
+    "Requested:\n" +
+    selectedSong.attributes.name +
+    " — " +
+    selectedSong.attributes.artistName
+  );
+
+  // 🔜 Next: push to Firebase DJ queue
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Karaoke Singer – Search</title>
+
+<style>
+html,body{
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+  font-family:Arial, sans-serif;
+  background:url("../Images/background.jpg") no-repeat center center fixed;
+  background-size:cover;
+  overflow:hidden;
+}
+
+/* Main container */
+#app{
+  padding:15px;
+}
+
+/* Search bar */
+#search{
+  width:100%;
+  padding:14px;
+  font-size:18px;
+  border-radius:10px;
+  border:none;
+  margin-bottom:12px;
+}
+
+/* Lists */
+#playlist, #results{
+  max-height:75vh;
+  overflow-y:auto;
+}
+
+/* Song row */
+.song{
+  display:flex;
+  align-items:center;
+  background:rgba(255,255,255,0.9);
+  border-radius:10px;
+  padding:10px;
+  margin-bottom:8px;
+  cursor:pointer;
+}
+
+.song img{
+  width:50px;
+  height:50px;
+  border-radius:6px;
+  margin-right:10px;
+}
+
+.hidden{ display:none; }
+</style>
+</head>
+
+<body>
+
+<div id="app">
+  <input id="search" placeholder="Search song or artist">
+
+  <!-- Playlist (shown when not searching) -->
+  <div id="playlist"></div>
+
+  <!-- Search results -->
+  <div id="results" class="hidden"></div>
+</div>
+
+<script>
+let songs = [];
+const searchInput = document.getElementById("search");
+const playlistDiv = document.getElementById("playlist");
+const resultsDiv = document.getElementById("results");
+
+/* Load CSV */
+fetch("../karafuncatalog.csv")
+.then(r=>r.text())
+.then(text=>{
+  const lines = text.split("\n").slice(1);
+  lines.forEach(line=>{
+    const parts = line.split(",");
+    if(parts.length > 2){
+      songs.push({
+        title: parts[1],
+        artist: parts[2]
+      });
+    }
+  });
+  renderPlaylist(songs.slice(0,30)); // initial playlist
+});
+
+/* Render songs */
+function renderPlaylist(list){
+  playlistDiv.innerHTML="";
+  list.forEach(song=>{
+    const div=document.createElement("div");
+    div.className="song";
+    div.innerHTML=`
+      <img src="../Images/song1.jpg">
+      <div>
+        <strong>${song.title}</strong><br>
+        ${song.artist}
+      </div>
+    `;
+    div.onclick=()=>{
+      localStorage.setItem("selectedSong", JSON.stringify(song));
+      window.location.href="personalize.html";
+    };
+    playlistDiv.appendChild(div);
+  });
+}
+
+/* Search logic */
+searchInput.oninput=()=>{
+  const q=searchInput.value.toLowerCase().trim();
+
+  if(q.length < 3){
+    resultsDiv.classList.add("hidden");
+    playlistDiv.classList.remove("hidden");
+    return;
+  }
+
+  playlistDiv.classList.add("hidden");
+  resultsDiv.classList.remove("hidden");
+  resultsDiv.innerHTML="";
+
+  songs
+    .filter(s=>s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q))
+    .slice(0,10)
+    .forEach(song=>{
+      const div=document.createElement("div");
+      div.className="song";
+      div.innerHTML=`
+        <img src="../Images/song1.jpg">
+        <div>
+          <strong>${song.title}</strong><br>
+          ${song.artist}
+        </div>
+      `;
+      div.onclick=()=>{
+        localStorage.setItem("selectedSong", JSON.stringify(song));
+        window.location.href="personalize.html";
+      };
+      resultsDiv.appendChild(div);
+    });
+};
+</script>
+
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personalization</title>
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: Arial, sans-serif;
+}
+
+/* Background wrapper */
+#bgWrapper {
+  width: 100%;
+  height: 100%;
+  background: url("Images/background.jpg") no-repeat center center fixed;
+  background-size: cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* Semi-transparent overlay */
+#dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Purple card */
+#overlay {
+  width: 90%;
+  max-width: 500px;
+  background: #3b145f;
+  border-radius: 16px;
+  padding: 20px;
+  color: white;
+  z-index: 2;
+  position: relative;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.header h2 { margin: 0; }
+
+.close {
+  font-size: 24px;
+  color: #aaa;
+  cursor: pointer;
+}
+
+/* Sections */
+.section {
+  background: #4c1d75;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+}
+
+/* Key controls */
+.key-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.key-btn {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  border: none;
+  background: #ff3ea5;
+  color: white;
+  font-size: 22px;
+}
+
+/* Tip buttons */
+.tip-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.tip-btn {
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: #ff3ea5;
+  color: white;
+  font-size: 16px;
+}
+
+.tip-btn.selected { background: #22c55e; }
+
+/* Payment buttons */
+.payment-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.pay-btn {
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: #ff3ea5;
+  color: white;
+  font-size: 16px;
+}
+
+.pay-btn.selected { background: #22c55e; }
+
+/* QR */
+#qrBox { text-align: center; }
+#qrBox img { width: 200px; margin-top: 10px; }
+
+/* Add button */
+#addBtn {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 12px;
+  background: #ff3ea5;
+  color: white;
+  font-size: 18px;
+}
+
+.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div id="bgWrapper">
+  <div id="dim"></div>
+
+  <div id="overlay">
+    <div class="header">
+      <h2>Personalization</h2>
+      <div class="close" onclick="location.href='search.html'">✕</div>
+    </div>
+
+    <!-- Sung By -->
+    <div class="section">
+      <label>Sung By</label>
+      <input id="singerName" placeholder="Singer">
+    </div>
+
+    <!-- Key -->
+    <div class="section">
+      <label>Key</label>
+      <div class="key-controls">
+        <button class="key-btn" onclick="changeKey(-1)">−</button>
+        <div id="keyVal">0</div>
+        <button class="key-btn" onclick="changeKey(1)">+</button>
+      </div>
+    </div>
+
+    <!-- Tip -->
+    <div class="section">
+      <label>Tip</label>
+      <div class="tip-grid">
+        <button class="tip-btn" onclick="selectTip(5)">$5</button>
+        <button class="tip-btn" onclick="selectTip(10)">$10</button>
+        <button class="tip-btn" onclick="selectTip(20)">$20</button>
+        <button class="tip-btn" onclick="selectTip('custom')">Custom</button>
+      </div>
+      <div id="customAmount" class="hidden" style="margin-top:10px;">
+        <label>Amount</label>
+        <input id="customVal" placeholder="$">
+      </div>
+    </div>
+
+    <!-- Payment -->
+    <div id="paymentSection" class="section hidden">
+      <label>Payment Method</label>
+      <div class="payment-grid">
+        <button class="pay-btn" onclick="selectPayment('Cash')">Cash</button>
+        <button class="pay-btn" onclick="selectPayment('CashApp')">CashApp</button>
+        <button class="pay-btn" onclick="selectPayment('Venmo')">Venmo</button>
+        <button class="pay-btn" onclick="selectPayment('Card')">Credit Card</button>
+      </div>
+    </div>
+
+    <!-- QR -->
+    <div id="qrBox" class="section hidden">
+      <label>Scan to Pay</label>
+      <img src="Images/Cashapp.jpg">
+      <p>Waiting for payment…</p>
+      <button id="confirmBtn" class="hidden" onclick="enableAdd()">Payment Sent</button>
+    </div>
+
+    <button id="addBtn" onclick="addSong()">Add Song To Queue</button>
+  </div>
+</div>
+
+<script>
+let key=0;
+
+function changeKey(v){
+  key=Math.max(-6,Math.min(6,key+v));
+  keyVal.innerText=key;
+}
+
+function selectTip(v){
+  document.querySelectorAll(".tip-btn").forEach(b=>b.classList.remove("selected"));
+  event.target.classList.add("selected");
+  customAmount.classList.toggle("hidden", v!=="custom");
+  paymentSection.classList.remove("hidden");
+}
+
+function selectPayment(p){
+  document.querySelectorAll(".pay-btn").forEach(b=>b.classList.remove("selected"));
+  event.target.classList.add("selected");
+
+  if(p==="Cash"){
+    qrBox.classList.add("hidden");
+  } else if(p==="CashApp"){
+    qrBox.classList.remove("hidden");
+    confirmBtn.classList.add("hidden");
+    setTimeout(()=>confirmBtn.classList.remove("hidden"),30000);
+  }
+}
+
+function enableAdd(){}
+
+function addSong(){
+  if(!singerName.value){
+    alert("Singer name required");
+    return;
+  }
+  location.href="songadded.html";
+}
+</script>
+
+</body>
+</html>
