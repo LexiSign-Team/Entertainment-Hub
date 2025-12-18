@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personalization</title>
+<style>
+/* --- same styling as your working personalization page --- */
+html, body { margin:0; padding:0; font-family: Arial,sans-serif; background:url("../Images/background.jpg") no-repeat center center fixed; background-size:cover; }
+.overlay { position:fixed; inset:0; display:flex; justify-content:center; align-items:center; }
+.panel { background: rgba(59,26,90,0.95); width:90%; max-width:500px; min-width:320px; padding:20px; border-radius:16px; color:white; }
+.header { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; }
+.header h2 { margin:0; } .close { font-size:24px; color:#ccc; cursor:pointer; }
+#errorMsg { color:#ff5555; margin-bottom:10px; display:none; }
+.section { background: rgba(76,29,117,0.8); border-radius:12px; padding:12px; margin-bottom:12px; }
+input { width:100%; background:transparent; border:none; border-bottom:1px solid #aaa; color:white; font-size:16px; padding:6px 0; }
+.stepper { display:flex; align-items:center; justify-content:space-between; margin-top:8px; }
+.circle { width:40px; height:40px; border-radius:50%; background:#e91e63; display:flex; align-items:center; justify-content:center; font-size:22px; cursor:pointer; }
+.value { font-size:22px; }
+.tip-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px; }
+.tip-btn { background:#e91e63; padding:10px; border-radius:8px; text-align:center; cursor:pointer; color:white; }
+.tip-btn.selected { background:#22c55e; }
+#customAmount { display:none; margin-top:10px; } #customAmount input { width:100%; }
+.payment-grid { display:none; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:10px; }
+.pay-btn { padding:10px; border-radius:8px; background:#e91e63; color:white; text-align:center; cursor:pointer; }
+.pay-btn.selected { background:#22c55e; }
+#qrBox { text-align:center; display:none; margin-top:10px; }
+#qrBox img { width:150px; margin-top:10px; }
+#paymentStatus { margin-top:8px; display:block; color:#fff; font-weight:bold; }
+#addBtn { width:100%; padding:14px; margin-top:12px; border:none; border-radius:12px; background:#e91e63; color:white; font-size:18px; cursor:pointer; }
+#addBtn:disabled { background:grey; cursor:not-allowed; }
+</style>
+</head>
+<body>
+
+<div class="overlay">
+  <div class="panel">
+    <div class="header">
+      <h2>Personalization</h2>
+      <div class="close" onclick="location.href='search.html'">✕</div>
+    </div>
+
+    <div id="errorMsg"></div>
+
+    <div class="section">
+      <strong>Sung By</strong><br>
+      <input id="singerName" placeholder="Singer">
+    </div>
+
+    <div class="section">
+      <strong>Key</strong>
+      <div class="stepper">
+        <div class="circle" onclick="changeKey(-1)">−</div>
+        <div class="value" id="keyVal">0</div>
+        <div class="circle" onclick="changeKey(1)">+</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <strong>Tip</strong>
+      <div class="tip-grid">
+        <div class="tip-btn" onclick="selectTip(5)">$5</div>
+        <div class="tip-btn" onclick="selectTip(10)">$10</div>
+        <div class="tip-btn" onclick="selectTip(15)">$15</div>
+        <div class="tip-btn" onclick="selectTip('custom')">Custom</div>
+      </div>
+
+      <div id="customAmount">
+        <label>Amount:</label>
+        <input id="customVal" placeholder="$">
+      </div>
+
+      <div class="payment-grid" id="paymentGrid">
+        <div class="pay-btn" onclick="selectPayment('Cash')">Cash</div>
+        <div class="pay-btn" onclick="selectPayment('CashApp')">CashApp</div>
+        <div class="pay-btn" onclick="selectPayment('Venmo')">Venmo</div>
+        <div class="pay-btn" onclick="selectPayment('Card')">Credit Card</div>
+      </div>
+
+      <div id="qrBox">
+        <label id="paymentStatus">Waiting for Payment Verification</label><br>
+        <img src="../Images/cashapp.jpg">
+      </div>
+    </div>
+
+    <button id="addBtn" onclick="addSong()" disabled>Add Song To Queue</button>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+const supabaseUrl = 'https://wrbkasrgzgnwgnaoohdq.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyYmthc3Jnemdud2duYW9vaGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5ODQ5OTYsImV4cCI6MjA4MTU2MDk5Nn0.POQp17bLTyxdj5Czs82ItFt_9r3ekyVTxhq4k40G8rU';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+let key = 0;
+const addBtn = document.getElementById("addBtn");
+let currentRequestId = null;
+let cashAppConfirmed = false;
+
+function changeKey(v){
+  key = Math.max(-6, Math.min(6, key + v));
+  document.getElementById("keyVal").innerText = key;
+  updateAddBtn();
+}
+
+function selectTip(v){
+  document.querySelectorAll(".tip-btn").forEach(b => b.classList.remove("selected"));
+  event.target.classList.add("selected");
+
+  const customAmount = document.getElementById("customAmount");
+  const customInput = document.getElementById("customVal");
+  const paymentGrid = document.getElementById("paymentGrid");
+
+  customAmount.style.display = 'block';
+  if(v==='custom') customInput.value = '';
+  else customInput.value = `$${v}.00`;
+  paymentGrid.style.display='grid';
+  updateAddBtn();
+}
+
+function selectPayment(p){
+  document.querySelectorAll(".pay-btn").forEach(b=>b.classList.remove("selected"));
+  event.target.classList.add("selected");
+
+  const qrBox = document.getElementById("qrBox");
+  const paymentStatus = document.getElementById("paymentStatus");
+
+  if(p==="CashApp"){
+    qrBox.style.display='block';
+    paymentStatus.textContent='Waiting for Payment Verification';
+    cashAppConfirmed=false;
+
+    // Insert a request into Supabase
+    const singer = document.getElementById("singerName").value.trim();
+    const tipVal = document.getElementById("customVal").value || document.querySelector(".tip-btn.selected").textContent.trim();
+    insertCashAppRequest(singer, tipVal, p);
+  } else {
+    qrBox.style.display='none';
+    paymentStatus.textContent='';
+    cashAppConfirmed=true;
+    updateAddBtn();
+  }
+}
+
+// Insert request into Supabase
+async function insertCashAppRequest(singer, tip_amount, payment_method){
+  const { data, error } = await supabase
+    .from('requests')
+    .insert([{ singer, tip_amount, payment_method, payment_confirmed:false, song_key:key }])
+    .select();
+  
+  if(error){ console.error(error); return; }
+
+  currentRequestId = data[0].id;
+
+  // Subscribe to realtime updates
+  supabase
+    .from(`requests:id=eq.${currentRequestId}`)
+    .on('UPDATE', payload => {
+      if(payload.new.payment_confirmed){
+        cashAppConfirmed = true;
+        document.getElementById("paymentStatus").textContent = "Payment Confirmed";
+        updateAddBtn();
+      }
+    })
+    .subscribe();
+}
+
+// Add Song
+function addSong(){
+  const singer = document.getElementById("singerName").value.trim();
+  if(!singer){ document.getElementById("errorMsg").innerText="Singer name required!"; return; }
+
+  const song = JSON.parse(localStorage.getItem("selectedSong"))||{};
+  song.singer=singer;
+  song.key=key;
+
+  const tipBtns = document.querySelectorAll(".tip-btn.selected");
+  song.tip=tipBtns.length?tipBtns[0].textContent.trim():null;
+  const payBtns = document.querySelectorAll(".pay-btn.selected");
+  song.payment=payBtns.length?payBtns[0].textContent.trim():null;
+
+  localStorage.removeItem("selectedSong");
+  localStorage.removeItem("queuedSong");
+
+  location.href="songadded.html";
+}
+
+// Enable Add Song button
+function updateAddBtn(){
+  const singer = document.getElementById("singerName").value.trim();
+  const tipSelected = document.querySelectorAll(".tip-btn.selected").length>0;
+  const paySelected = document.querySelectorAll(".pay-btn.selected").length>0;
+  const selectedPay = document.querySelector(".pay-btn.selected")?.textContent.trim();
+
+  if(!singer){ addBtn.disabled=true; return; }
+  if(selectedPay==="CashApp" && !cashAppConfirmed){ addBtn.disabled=true; return; }
+  if(tipSelected && selectedPay){ addBtn.disabled=false; return; }
+  if(!tipSelected){ addBtn.disabled=false; }
+}
+
+document.getElementById("singerName").addEventListener("input", updateAddBtn);
+</script>
+</body>
+</html>

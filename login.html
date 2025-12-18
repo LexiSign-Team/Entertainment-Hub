@@ -8,7 +8,7 @@
 body, html {
     margin:0; padding:0; font-family: Arial, sans-serif;
     height:100%; width:100%;
-    background: url('Images/background.jpg') no-repeat center center fixed;
+    background: url('Images/mainbackground.jpg') no-repeat center center fixed;
     background-size: cover;
     display:flex; justify-content:center; align-items:center;
 }
@@ -17,9 +17,11 @@ body, html {
     padding: 30px;
     border-radius: 10px;
     text-align:center;
+    width: 300px;
 }
-input { width:80%; padding:10px; margin:10px 0; border-radius:6px; border:1px solid #ccc; }
-button { padding:10px 20px; border-radius:6px; cursor:pointer; }
+input { width:100%; padding:10px; margin:10px 0; border-radius:6px; border:1px solid #ccc; box-sizing: border-box;}
+button { padding:10px 20px; border-radius:6px; cursor:pointer; width: 100%; }
+#errorMsg { color: red; font-size: 14px; margin-top: 5px; display: none; }
 </style>
 </head>
 <body>
@@ -28,20 +30,41 @@ button { padding:10px 20px; border-radius:6px; cursor:pointer; }
     <input type="text" id="username" placeholder="Username"><br>
     <input type="password" id="password" placeholder="Password"><br>
     <button id="loginBtn">Login</button>
+    <div id="errorMsg"></div>
 </div>
 
 <script>
 const loginBtn = document.getElementById('loginBtn');
+const errorMsg = document.getElementById('errorMsg');
 
-loginBtn.addEventListener('click', ()=>{
-    const user = document.getElementById('username').value.trim();
-    const pass = document.getElementById('password').value.trim();
+// Hard-coded accounts
+const accounts = [
+    { username: 'DylanHost', password: 'RoxstarStudios' },
+    { username: 'NickHost', password: 'RoxstarStudios' }
+];
 
-    if((user==='DylanHost' && pass==='RoxstarStudios') ||
-       (user==='NickHost' && pass==='RoxstarStudios')){
+loginBtn.addEventListener('click', () => {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    errorMsg.style.display = 'none';
+    errorMsg.textContent = '';
+
+    if(!username || !password){
+        errorMsg.textContent = 'Please enter both username and password';
+        errorMsg.style.display = 'block';
+        return;
+    }
+
+    const account = accounts.find(acc => acc.username === username && acc.password === password);
+
+    if(account){
+        // Store user info in localStorage if needed
+        localStorage.setItem('host_user', JSON.stringify({ name: account.username }));
         window.location.href = 'option.html';
     } else {
-        alert('Incorrect username or password');
+        errorMsg.textContent = 'Invalid username or password';
+        errorMsg.style.display = 'block';
     }
 });
 </script>

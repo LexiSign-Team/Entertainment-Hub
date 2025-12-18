@@ -1,0 +1,68 @@
+Entertainment-hub/
+│
+├─ login.html      
+├─ options.html   
+│  
+├─ singer-View/
+│   ├─ search.html              
+│   ├─ playlist.html           
+│   ├─ personalize.html
+│   ├─ pin.html
+│   ├─ songadded.html         
+│   ├─ host-view.html
+│   └─ karaoke-tv.html
+│  
+├─ karafuncatalog.csv       
+│
+├─ Images/                  
+│   ├─ background.jpg    
+│   ├─ mybackground.jpg
+│   ├─ cashapp.jpg
+│   ├─ dj-background.jpg
+│   ├─ playlist1.jpg    <--Karaoke Classics
+│   ├─ playlist2.jpg    <--Legends of Rock
+│   ├─ playlist3.jpg    <--Classic Country
+│   ├─ playlist4.jpg    <--Pop Divas
+│   ├─ playlist5.jpg    <--US Rock
+│   ├─ playlist6.jpg    <--Easy for Men
+│   ├─ playlist7.jpg    <--Easy for Women
+│   ├─ playlist8.jpg    <--Battles
+│   ├─ playlist9.jpg    <--Essential Folk
+│   ├─ playlist10.jpg   <--Coming Soon!
+│   ├─ playlist11.jpg   <--Coming Soon!
+│   ├─ playlist12.jpg   <--Coming Soon!
+│   ├─ playlist13.jpg   <--Coming Soon!
+│   ├─ playlist14.jpg   <--Coming Soon!
+│   ├─ playlist15.jpg   <--Coming Soon!
+│   ├─ playlist16.jpg   <--Coming Soon!
+│   ├─ song1.jpg             
+│   ├─ song2.jpg
+│   └─ ...  
+│  
+├─Data/
+│   ├─ playlist1.csv
+│   ├─ playlist2.csv
+│   ├─ playlist3.csv
+│   ├─ playlist4.csv
+│   ├─ playlist5.csv                
+│   ├─ playlist6.csv
+│   ├─ playlist7.csv
+│   ├─ playlist8.csv
+│   ├─ playlist9.csv
+│   ├─ playlist10.csv
+│   ├─ playlist11.csv
+│   ├─ playlist12.csv
+│   ├─ playlist13.csv
+│   ├─ playlist14.csv
+│   ├─ playlist15.csv
+│   └─ playlist16.csv
+│  
+├─ DJ-Night
+│   ├─ dj-queue.html
+│   ├─ dj-song-request.html
+│   └─ dj-tv.html
+│
+└─ Endofnight.html
+
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyYmthc3Jnemdud2duYW9vaGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5ODQ5OTYsImV4cCI6MjA4MTU2MDk5Nn0.POQp17bLTyxdj5Czs82ItFt_9r3ekyVTxhq4k40G8rU

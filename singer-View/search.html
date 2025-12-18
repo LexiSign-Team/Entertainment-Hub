@@ -2,154 +2,265 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Karaoke Singer – Search</title>
-
 <style>
-html,body{
-  margin:0;
-  padding:0;
-  width:100%;
-  height:100%;
-  font-family:Arial, sans-serif;
-  background:url("../Images/background.jpg") no-repeat center center fixed;
-  background-size:cover;
-  overflow:hidden;
-}
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: url("../Images/background.jpg") no-repeat center center fixed;
+    background-size: cover;
+    height: 100%;
+    overflow: hidden;
+    color: white;
+  }
 
-/* Main container */
-#app{
-  padding:15px;
-}
+  #exitBtn {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 9999;
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0);
+    border: none;
+    cursor: pointer;
+  }
 
-/* Search bar */
-#search{
-  width:100%;
-  padding:14px;
-  font-size:18px;
-  border-radius:10px;
-  border:none;
-  margin-bottom:12px;
-}
+  #app {
+    padding: 15px;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
+  }
 
-/* Lists */
-#playlist, #results{
-  max-height:75vh;
-  overflow-y:auto;
-}
+  #searchInput {
+    width: 100%;
+    padding: 14px;
+    font-size: 18px;
+    border-radius: 10px;
+    border: none;
+    margin-bottom: 20px;
+  }
 
-/* Song row */
-.song{
-  display:flex;
-  align-items:center;
-  background:rgba(255,255,255,0.9);
-  border-radius:10px;
-  padding:10px;
-  margin-bottom:8px;
-  cursor:pointer;
-}
+  /* Playlists Grid */
+  #playlists {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+  }
 
-.song img{
-  width:50px;
-  height:50px;
-  border-radius:6px;
-  margin-right:10px;
-}
+  .playlist-item {
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.1s;
+  }
 
-.hidden{ display:none; }
+  .playlist-item img {
+    width: 100%;
+    border-radius: 12px;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+  }
+
+  .playlist-item div {
+    margin-top: 6px;
+    font-weight: bold;
+    color: white;
+  }
+
+  #results {
+    display: none;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    max-height: 75vh;
+    overflow-y: auto;
+  }
+
+  .song {
+    display: flex;
+    align-items: center;
+    background: rgba(0,0,0,0.7);
+    border-radius: 12px;
+    padding: 10px;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  .song:hover {
+    transform: scale(1.02);
+  }
+
+  .song img {
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
+    margin-right: 12px;
+    object-fit: cover;
+  }
+
+  .song-info {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+  }
+
+  .song-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+
+  .song-artist {
+    color: #ccc;
+    font-size: 14px;
+  }
+
+  @media (max-width: 600px) {
+    #results { grid-template-columns: 1fr; }
+    #playlists { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
-
 <body>
 
+<button id="exitBtn" onclick="window.location.href='../exitpin.html'"></button>
+
 <div id="app">
-  <input id="search" placeholder="Search song or artist">
-
-  <!-- Playlist (shown when not searching) -->
-  <div id="playlist"></div>
-
-  <!-- Search results -->
-  <div id="results" class="hidden"></div>
+  <input type="text" id="searchInput" placeholder="Search songs or artists...">
+  <div id="playlists"></div>
+  <div id="results"></div>
 </div>
 
-<script>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+const supabaseUrl = 'https://wrbkasrgzgnwgnaoohdq.supabase.co'
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyYmthc3Jnemdud2duYW9vaGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5ODQ5OTYsImV4cCI6MjA4MTU2MDk5Nn0.POQp17bLTyxdj5Czs82ItFt_9r3ekyVTxhq4k40G8rU'
+const supabase = createClient(supabaseUrl, supabaseKey)
+
+// --- Playlists ---
+const playlists = [
+  {id:1, name:"Karaoke Classics", img:"../Images/playlist1.jpg"},
+  {id:2, name:"Legends of Rock", img:"../Images/playlist2.jpg"},
+  {id:3, name:"Classic Country", img:"../Images/playlist3.jpg"},
+  {id:4, name:"Pop Divas", img:"../Images/playlist4.jpg"},
+  {id:5, name:"US Rock", img:"../Images/playlist5.jpg"},
+  {id:6, name:"Easy for Men", img:"../Images/playlist6.jpg"},
+  {id:7, name:"Easy for Women", img:"../Images/playlist7.jpg"},
+  {id:8, name:"Battles", img:"../Images/playlist8.jpg"},
+  {id:9, name:"Essential Folk", img:"../Images/playlist9.jpg"},
+  {id:10, name:"Coming Soon!", img:"../Images/playlist10.jpg"},
+  {id:11, name:"Coming Soon!", img:"../Images/playlist11.jpg"},
+  {id:12, name:"Coming Soon!", img:"../Images/playlist12.jpg"},
+  {id:13, name:"Coming Soon!", img:"../Images/playlist13.jpg"},
+  {id:14, name:"Coming Soon!", img:"../Images/playlist14.jpg"},
+  {id:15, name:"Coming Soon!", img:"../Images/playlist15.jpg"},
+  {id:16, name:"Coming Soon!", img:"../Images/playlist16.jpg"},
+];
+
+// --- Songs from CSV ---
 let songs = [];
-const searchInput = document.getElementById("search");
-const playlistDiv = document.getElementById("playlist");
-const resultsDiv = document.getElementById("results");
-
-/* Load CSV */
 fetch("../karafuncatalog.csv")
-.then(r=>r.text())
-.then(text=>{
-  const lines = text.split("\n").slice(1);
-  lines.forEach(line=>{
-    const parts = line.split(",");
-    if(parts.length > 2){
-      songs.push({
-        title: parts[1],
-        artist: parts[2]
-      });
+.then(res => res.text())
+.then(text => {
+  const lines = text.trim().split("\n");
+  lines.shift(); // Remove header
+  lines.forEach(line => {
+    const regex = /(?:\"([^\"]*)\")|([^;]+)/g;
+    let match, cols = [];
+    while(match = regex.exec(line)) {
+      cols.push(match[1] !== undefined ? match[1] : match[2]);
     }
+    const id = cols[0] ? cols[0].trim() : "";
+    const title = cols[1] ? cols[1].trim() : "";
+    const artist = cols[2] ? cols[2].trim() : "";
+    songs.push({id, title, artist});
   });
-  renderPlaylist(songs.slice(0,30)); // initial playlist
-});
+})
+.catch(err => console.error("Error loading CSV:", err));
 
-/* Render songs */
-function renderPlaylist(list){
-  playlistDiv.innerHTML="";
-  list.forEach(song=>{
-    const div=document.createElement("div");
-    div.className="song";
-    div.innerHTML=`
-      <img src="../Images/song1.jpg">
-      <div>
-        <strong>${song.title}</strong><br>
-        ${song.artist}
-      </div>
-    `;
-    div.onclick=()=>{
-      localStorage.setItem("selectedSong", JSON.stringify(song));
-      window.location.href="personalize.html";
-    };
-    playlistDiv.appendChild(div);
-  });
+// --- Fetch queued song titles only ---
+let queuedTitles = []
+async function fetchQueuedTitles() {
+  const { data, error } = await supabase.from('requests').select('song_title');
+  if(error){ console.error(error); return; }
+  queuedTitles = data.map(s => s.song_title.toLowerCase());
 }
 
-/* Search logic */
-searchInput.oninput=()=>{
-  const q=searchInput.value.toLowerCase().trim();
+// --- Render playlists ---
+const playlistsDiv = document.getElementById("playlists");
+playlists.forEach(pl => {
+  const div = document.createElement("div");
+  div.className = "playlist-item";
+  div.innerHTML = `<img src="${pl.img}" alt="${pl.name}"><div>${pl.name}</div>`;
+  div.onclick = () => window.location.href = `playlist.html?playlist=${pl.id}`;
+  playlistsDiv.appendChild(div);
+});
 
-  if(q.length < 3){
-    resultsDiv.classList.add("hidden");
-    playlistDiv.classList.remove("hidden");
+// --- Search ---
+const searchInput = document.getElementById("searchInput");
+const resultsDiv = document.getElementById("results");
+
+searchInput.addEventListener("input", async () => {
+  const query = searchInput.value.trim().toLowerCase();
+  resultsDiv.innerHTML = "";
+  await fetchQueuedTitles();
+
+  if(query.length < 2) {
+    resultsDiv.style.display = "none";
+    playlistsDiv.style.display = "grid";
     return;
   }
 
-  playlistDiv.classList.add("hidden");
-  resultsDiv.classList.remove("hidden");
-  resultsDiv.innerHTML="";
+  playlistsDiv.style.display = "none";
+  resultsDiv.style.display = "grid";
 
-  songs
-    .filter(s=>s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q))
-    .slice(0,10)
-    .forEach(song=>{
-      const div=document.createElement("div");
-      div.className="song";
-      div.innerHTML=`
-        <img src="../Images/song1.jpg">
-        <div>
-          <strong>${song.title}</strong><br>
-          ${song.artist}
-        </div>
-      `;
-      div.onclick=()=>{
-        localStorage.setItem("selectedSong", JSON.stringify(song));
-        window.location.href="personalize.html";
-      };
-      resultsDiv.appendChild(div);
-    });
-};
+  const filtered = songs.filter(s => {
+    const titleKey = s.title.toLowerCase();
+    return (s.title.toLowerCase().includes(query) || s.artist.toLowerCase().includes(query)) 
+           && !queuedTitles.includes(titleKey);
+  }).slice(0, 20);
+
+  filtered.forEach(song => {
+    const div = document.createElement("div");
+    div.className = "song";
+    div.innerHTML = `
+      <img src="../Images/song1.jpg" alt="Song">
+      <div class="song-info">
+        <div class="song-title">${song.title}</div>
+        <div class="song-artist">${song.artist}</div>
+      </div>
+    `;
+    div.onclick = () => {
+      localStorage.setItem("selectedSong", JSON.stringify(song));
+      window.location.href = "personalize.html";
+    };
+    resultsDiv.appendChild(div);
+  });
+});
+
+// --- Fullscreen Lock ---
+if (localStorage.getItem("fullscreenLock") === null) {
+  localStorage.setItem("fullscreenLock", "true");
+}
+function requestFullscreenLock() {
+  if(localStorage.getItem("fullscreenLock")==="true" && !document.fullscreenElement)
+    document.documentElement.requestFullscreen().catch(()=>{});
+}
+const app = document.getElementById("app");
+let fullscreenRequested = false;
+app.addEventListener("click", () => {
+  if(!fullscreenRequested){ requestFullscreenLock(); fullscreenRequested=true; }
+});
+document.addEventListener("fullscreenchange", () => {
+  if(!document.fullscreenElement && localStorage.getItem("fullscreenLock")==="true")
+    setTimeout(requestFullscreenLock,100);
+});
+setInterval(()=>{ if(!document.fullscreenElement && localStorage.getItem("fullscreenLock")==="true") requestFullscreenLock(); },2000);
 </script>
 
 </body>

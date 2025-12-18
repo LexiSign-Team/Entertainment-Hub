@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Playlist</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #000;
+      color: #fff;
+    }
+
+    /* Back button */
+    .back-btn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      text-decoration: none;
+      color: #fff;
+      background: rgba(0,0,0,0.6);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      z-index: 1000;
+    }
+
+    /* Playlist header image */
+    .playlist-header img {
+      width: 100%;
+      max-height: 260px;
+      object-fit: cover;
+    }
+
+    /* Song grid */
+    .song-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      padding: 15px;
+    }
+
+    .song {
+      display: flex;
+      align-items: center;
+      background: #111;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer; /* Make songs clickable */
+      transition: transform 0.1s;
+    }
+
+    .song:hover {
+      transform: scale(1.02);
+    }
+
+    .song-number {
+      color: #666;
+      font-size: 12px;
+      margin-right: 8px;
+      min-width: 20px;
+      text-align: right;
+    }
+
+    .song img {
+      width: 50px;
+      height: 50px;
+      border-radius: 6px;
+      margin-right: 10px;
+    }
+
+    .song-text {
+      text-align: left;
+    }
+
+    .song-title {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .song-artist {
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    /* Mobile fix */
+    @media (max-width: 600px) {
+      .song-list {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Back to search -->
+  <a href="search.html" class="back-btn">← Back</a>
+
+  <!-- Playlist image -->
+  <div class="playlist-header">
+    <img id="playlistImage" alt="Playlist">
+  </div>
+
+  <!-- Songs -->
+  <div class="song-list" id="songList"></div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    const supabaseUrl = 'https://wrbkasrgzgnwgnaoohdq.supabase.co'
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyYmthc3Jnemdud2duYW9vaGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5ODQ5OTYsImV4cCI6MjA4MTU2MDk5Nn0.POQp17bLTyxdj5Czs82ItFt_9r3ekyVTxhq4k40G8rU'
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    // --- Fullscreen Lock Persistence ---
+    if (localStorage.getItem("fullscreenLock") === null) {
+      localStorage.setItem("fullscreenLock", "true");
+    }
+
+    function requestFullscreenLock() {
+      if (localStorage.getItem("fullscreenLock") === "true" && !document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(()=>{});
+      }
+    }
+
+    // Trigger fullscreen on first click anywhere on body
+    let fullscreenRequested = false;
+    document.body.addEventListener("click", () => {
+      if (!fullscreenRequested) {
+        requestFullscreenLock();
+        fullscreenRequested = true;
+      }
+    });
+
+    document.addEventListener("fullscreenchange", () => {
+      if (!document.fullscreenElement && localStorage.getItem("fullscreenLock") === "true") {
+        setTimeout(requestFullscreenLock, 100);
+      }
+    });
+
+    setInterval(() => {
+      if (!document.fullscreenElement && localStorage.getItem("fullscreenLock") === "true") {
+        requestFullscreenLock();
+      }
+    }, 2000);
+
+    // --- Playlist Logic ---
+    const params = new URLSearchParams(window.location.search);
+    const playlistNum = params.get('playlist') || 1;
+
+    document.getElementById("playlistImage").src =
+      "../Images/playlist" + playlistNum + ".jpg";
+
+    // --- Fetch queued song titles only ---
+    let queuedTitles = []
+    async function fetchQueuedTitles() {
+      const { data, error } = await supabase.from('requests').select('song_title');
+      if(error){ console.error(error); return; }
+      queuedTitles = data.map(s => s.song_title.toLowerCase());
+    }
+
+    // --- Load playlist and filter ---
+    async function loadPlaylist() {
+      await fetchQueuedTitles();
+
+      fetch("../Data/playlist" + playlistNum + ".csv")
+        .then(response => response.text())
+        .then(csv => {
+          const lines = csv.trim().split("\n").slice(1);
+          const list = document.getElementById("songList");
+          list.innerHTML = "";
+
+          let displayIndex = 0;
+          lines.forEach(line => {
+            const splitIndex = line.lastIndexOf(",");
+            const title = line.slice(0, splitIndex).trim();
+            const artist = line.slice(splitIndex + 1).trim();
+
+            if (queuedTitles.includes(title.toLowerCase())) return; // Skip queued song title
+
+            displayIndex++;
+            const song = document.createElement("div");
+            song.className = "song";
+
+            song.innerHTML = `
+              <div class="song-number">${displayIndex}.</div>
+              <img src="../Images/song1.jpg" alt="Song">
+              <div class="song-text">
+                <div class="song-title">${title}</div>
+                <div class="song-artist">${artist}</div>
+              </div>
+            `;
+
+            song.addEventListener("click", () => {
+              localStorage.setItem("selectedSong", JSON.stringify({title, artist}));
+              window.location.href = "personalize.html";
+            });
+
+            list.appendChild(song);
+          });
+        })
+        .catch(() => {
+          document.getElementById("songList").innerHTML =
+            "<p style='padding:15px'>Playlist not found.</p>";
+        });
+    }
+
+    loadPlaylist();
+  </script>
+
+</body>
+</html>

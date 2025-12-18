@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enter PIN to Exit</title>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #d9d9d9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+
+  #pinDisplay {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+
+  .dot {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #888;
+    border-radius: 50%;
+    background-color: white;
+  }
+
+  .dot.filled {
+    background-color: #555;
+  }
+
+  #numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 80px);
+    grid-template-rows: repeat(4, 80px);
+    gap: 15px;
+  }
+
+  #numpad button {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  }
+
+  #numpad button:active {
+    background-color: #ccc;
+  }
+
+  #pinError {
+    color: red;
+    margin-top: 15px;
+    height: 20px;
+  }
+</style>
+</head>
+<body>
+
+<h2>Enter PIN to Exit</h2>
+
+<div id="pinDisplay">
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+</div>
+
+<div id="numpad">
+  <button>1</button>
+  <button>2</button>
+  <button>3</button>
+  <button>4</button>
+  <button>5</button>
+  <button>6</button>
+  <button>7</button>
+  <button>8</button>
+  <button>9</button>
+  <button id="cancel">X</button>
+  <button>0</button>
+  <button id="backspace">←</button>
+</div>
+
+<div id="pinError"></div>
+
+<script>
+  const numpadButtons = document.querySelectorAll("#numpad button");
+  const dots = document.querySelectorAll(".dot");
+  const pinError = document.getElementById("pinError");
+  let enteredPin = "";
+  const savedPin = localStorage.getItem("exitPin"); // retrieve existing PIN
+
+  function updateDots() {
+    dots.forEach((dot, index) => {
+      dot.classList.toggle("filled", index < enteredPin.length);
+    });
+  }
+
+  function resetPin() {
+    enteredPin = "";
+    updateDots();
+    pinError.textContent = "";
+  }
+
+  numpadButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const val = btn.textContent;
+      if (val === "←") {
+        enteredPin = enteredPin.slice(0,-1);
+      } else if (val === "X") {
+        // Cancel goes back to search.html (same folder)
+        window.location.replace("search.html");
+        return;
+      } else {
+        if (enteredPin.length < 4) enteredPin += val;
+      }
+      updateDots();
+
+      if (enteredPin.length === 4) {
+        if (enteredPin === savedPin) {
+          // Correct PIN: clear and go to option.html in main folder
+          localStorage.removeItem("exitPin");
+          resetPin();
+          window.location.href = "../option.html"; // go up one folder
+        } else {
+          pinError.textContent = "Incorrect PIN!";
+          enteredPin = "";
+          updateDots();
+        }
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

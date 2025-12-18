@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Host View</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    font-family: Arial, sans-serif;
+    background: url("../Images/Host.jpg") no-repeat center center fixed;
+    background-size: cover;
+    color: white;
+    overflow: hidden;
+  }
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 40px;
+    text-align: center;
+  }
+
+  .top-text {
+    font-size: 2rem;
+    font-weight: bold;
+    background-color: rgba(0,0,0,0.6);
+    padding: 20px 40px;
+    border-radius: 12px;
+  }
+
+  .pre-stage {
+    margin-top: 60px;
+    width: 90%;
+    max-width: 1000px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .pre-stage-item {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 1rem;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 2fr auto;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .pre-stage-item button {
+    background-color: rgba(34,197,94,0.8);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .pre-stage-item button:hover {
+    background-color: rgba(34,197,94,1);
+  }
+</style>
+</head>
+<body>
+
+<div class="overlay">
+  <div class="top-text">Time to bring the noise, Dylan. Who’s up first?</div>
+
+  <div class="pre-stage" id="preStageContainer">
+    <p>Loading pre-stage queue...</p>
+  </div>
+</div>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+  const supabaseUrl = 'https://wrbkasrgzgnwgnaoohdq.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyYmthc3Jnemdud2duYW9vaGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5ODQ5OTYsImV4cCI6MjA4MTU2MDk5Nn0.POQp17bLTyxdj5Czs82ItFt_9r3ekyVTxhq4k40G8rU';
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  const preStageContainer = document.getElementById('preStageContainer');
+
+  async function loadPreStage() {
+    const { data, error } = await supabase
+      .from('requests')
+      .select('id, song_title, artist, song_key, singer, created_at')
+      .order('created_at', { ascending: true });
+
+    if(error) {
+      preStageContainer.innerHTML = `<div style="color:red;">Error loading pre-stage queue</div>`;
+      console.error(error);
+      return;
+    }
+
+    if(!data || data.length === 0) {
+      preStageContainer.innerHTML = `<div>No requests yet</div>`;
+      return;
+    }
+
+    preStageContainer.innerHTML = data.map(r => `
+      <div class="pre-stage-item">
+        <div>${r.song_title}</div>
+        <div>${r.artist || ''}</div>
+        <div>${r.song_key || 'Orig'}</div>
+        <div>${r.singer}</div>
+        <div>${new Date(r.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+        <button onclick="addSong('${r.id}')">Add Song</button>
+      </div>
+    `).join('');
+  }
+
+  window.addSong = (id) => {
+    // Placeholder, does nothing for now
+    console.log('Add song clicked:', id);
+  };
+
+  loadPreStage();
+  setInterval(loadPreStage, 5000); // Refresh every 5s
+</script>
+
+</body>
+</html>
